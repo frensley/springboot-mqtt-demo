@@ -6,6 +6,9 @@
 
 This project demonstrates the use of MQTT as a lightweight message protocol to track gps information and visualize it on a Google map.
 
+
+![screen-shot-1](../master/doc/screen-shot-1.png)
+
 #### Build Instructions
 1. ``git clone https://github.com/frensley/springboot-mqtt-demo.git``
 1. ``cd springboot-mqtt-demo``
