@@ -17,12 +17,15 @@ This project demonstrates the use of MQTT as a lightweight message protocol to t
 1. Use your browser to open http://localhost:8080
 
 #### Owntracks Client Instructions
-1. Download [Owntracks](http://owntracks.org/) for your mobile device
+1. Download [OwnTracks](http://owntracks.org/) for your mobile device
 1. Access settings menu
 1. Deactivate TLS
 1. Deactivate Auth
 1. Enter the IP address or Host name of the machine in the Host field
 1. Enter a unique name in the DeviceID field
+
+To publish Owntrack location use Location Monitoring Mode Menu (second icon from left on top of OwnTracks tab).
+Location publish can be done using the "Publish Now" or "Move Mode" selections.
 
 #### To-do:
 - More unit testing
