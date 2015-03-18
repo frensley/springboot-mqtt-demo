@@ -24,7 +24,7 @@ This project demonstrates the use of MQTT as a lightweight message protocol to t
 1. Enter the IP address or Host name of the machine in the Host field
 1. Enter a unique name in the DeviceID field
 
-To publish Owntrack location use Location Monitoring Mode Menu (second icon from left on top of OwnTracks tab).
+To publish Owntracks location use Location Monitoring Mode Menu (second icon from left on top of OwnTracks tab).
 Location publish can be done using the "Publish Now" or "Move Mode" selections.
 
 #### To-do:
