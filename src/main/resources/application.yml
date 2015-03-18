@@ -1,0 +1,29 @@
+mqtt:
+  server:
+    port: 8883
+    #websocket_port: 8080
+    host: 0.0.0.0
+    password_file: password_file.conf
+    name: main-server
+  consumer:
+    host: localhost
+    port: 8883
+    subscriptions: owntracks/user/+
+    name: consumer
+    timeout: 5000
+    session-window-seconds: 300
+
+spring:
+  thymeleaf:
+    cache: false
+    mode: LEGACYHTML5
+
+server:
+  port: 8080
+
+---
+spring:
+    profiles: aws
+
+server:
+  port: 80
