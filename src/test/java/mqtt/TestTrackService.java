@@ -6,6 +6,7 @@ import mqtt.domain.Track;
 import mqtt.service.SessionService;
 import mqtt.service.TopicService;
 import mqtt.service.TrackService;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +31,19 @@ public class TestTrackService {
     @Autowired SessionService sessionService;
     @Autowired TopicService topicService;
 
+    Topic t;
 
+    @Before
+    public void before() {
+        t = topicService.findOrCreateTopic("topic");
+        assertNotNull(t);
+    }
 
+    /**
+     * Assert that the save @Track is delivered for matching @Topic and timestamp
+     */
     @Test
     public void testFindByTopicAndTimestamp() {
-        Topic t = topicService.findOrCreateTopic("topic");
-        //
-        assertNotNull(t);
         Session s1 = new Session();
         s1.setDate(System.currentTimeMillis());
         s1.setTopic(t);
@@ -54,11 +61,11 @@ public class TestTrackService {
         assertTrue(track1.getId() == track.getId());
     }
 
+    /**
+     * Assert that a @Track point in the same @Session is within the distance tolerance.
+     */
     @Test
     public void testFindWithinDistanceForSession() {
-        Topic t = topicService.findOrCreateTopic("topic");
-        //
-        assertNotNull(t);
         Session s1 = new Session();
         s1.setDate(System.currentTimeMillis());
         s1.setTopic(t);

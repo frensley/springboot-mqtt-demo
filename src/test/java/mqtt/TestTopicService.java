@@ -24,6 +24,10 @@ public class TestTopicService {
     @Autowired
     TopicService service;
 
+    /**
+     * Assert that same session is returned for same name.
+     * Assert that different session is return for different name.
+     */
     @Test
     public void testFindOrCreate() {
         Topic t1 = service.findOrCreateTopic("foo");
@@ -32,7 +36,6 @@ public class TestTopicService {
         assertNotNull(t1.getId());
 
         Topic t2 = service.findOrCreateTopic("foo");
-
         assertTrue(t1.getId() == t2.getId());
 
         Topic t3 = service.findOrCreateTopic("bar");

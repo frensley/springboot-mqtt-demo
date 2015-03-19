@@ -4,6 +4,7 @@ import mqtt.domain.Session;
 import mqtt.domain.Topic;
 import mqtt.service.SessionService;
 import mqtt.service.TopicService;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +27,20 @@ public class TestSessionService {
     @Autowired private SessionService sessionService;
     @Autowired private TopicService topicService;
 
+    Topic t;
+
+    @Before
+    public void before() {
+        t = topicService.findOrCreateTopic("topic");
+        assertNotNull(t);
+    }
+
+
     /**
      * Assert that we get the same session inside the tolerance window
      */
     @Test
     public void testFindSameLatestSession() {
-        Topic t = topicService.findOrCreateTopic("topic");
         Session s1 = new Session();
         s1.setDate(System.currentTimeMillis());
         s1.setTopic(t);
@@ -44,11 +53,10 @@ public class TestSessionService {
     }
 
     /**
-     * Assert that we get a different session inside the tolerance window
+     * Assert that we get a different @Session inside the tolerance window
      */
     @Test
     public void testFindNewLatestSession() {
-        Topic t = topicService.findOrCreateTopic("topic");
         Session s1 = new Session();
         s1.setDate(System.currentTimeMillis());
         s1.setTopic(t);
