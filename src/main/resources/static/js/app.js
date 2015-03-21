@@ -5,6 +5,7 @@ function ApplicationModel(map, cfg) {
     self.username = "username here";
     self.markers = [];
     self.trackLine = undefined;
+    self.speedChart;
 
     self.topicItems = ko.observableArray([]);
     self.topicIds = ko.observable(-1);
@@ -16,7 +17,16 @@ function ApplicationModel(map, cfg) {
     self.trackData = ko.observableArray([]).extend({ rateLimit: { timeout: 500, method: "notifyWhenChangesStop" } });
 
     self.init = function() {
-        getTopics();
+        //initialize chart
+        self.speedChart = new google.visualization.LineChart($('#speedChart')[0]);
+        google.visualization.events.addListener(self.speedChart, 'onmouseover', function(e) {
+            console.log("mouseover ",e)
+        });
+
+        google.visualization.events.addListener(self.speedChart, 'onmouseout', function(e) {
+            console.log("mouseout ",e)
+        });
+
 
         self.topicIds.subscribe(function(newvalue) {
             getSessions(newvalue);
@@ -28,8 +38,11 @@ function ApplicationModel(map, cfg) {
         self.trackData.subscribe(function(value) {
             drawTracks(value);
             //drawMarkers(value);
-            drawChart($('#chart1')[0], value);
+            drawSpeedChart(value);
         });
+
+        //xhr list topics
+        getTopics();
     }
 
     self.refresh = function() {
@@ -173,16 +186,21 @@ function ApplicationModel(map, cfg) {
      * @param trackId
      */
 
-    function drawChart(el, trackData) {
-        var dataTable = new google.visualization.DataTable();
+    function drawSpeedChart(trackData) {
+        var dataTable = new google.visualization.DataTable(),
+            monthYearFormatter;
         dataTable.addColumn('date', 'Date');
         dataTable.addColumn('number', 'Speed');
         dataTable.addColumn('number', 'Altitude');
         $.each(trackData, function (i, item) {
-            dataTable.addRow([new Date(item.tst), item.vel, item.alt])
+            dataTable.addRow([new Date(item.tst * 1000), item.vel, item.alt])
         });
-        new google.visualization.LineChart(el).
-            draw(dataTable, {
+        //reformat date column
+        monthYearFormatter = new google.visualization.DateFormat({
+            pattern: "MMM yyyy hh:mm aa"
+        });
+        monthYearFormatter.format(dataTable, 0);
+        self.speedChart.draw(dataTable, {
                 vAxes: [
                     {title: 'Speed km/h', titleTextStyle: {color: 'black'}, maxValue: 10}, // Left axis
                     {title: 'Alititude m', titleTextStyle: {color: 'black'}, maxValue: 20} // Right axis
