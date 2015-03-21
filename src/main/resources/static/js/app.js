@@ -10,6 +10,10 @@ function ApplicationModel(map, cfg) {
     self.topicIds = ko.observable(-1);
     self.sessionItems = ko.observableArray([]);
     self.sessionIds = ko.observable(-1);
+    self.currentTrackId = -1;
+
+    //observable rate limit - only notify when this has stopped updating for at least 500ms
+    self.trackData = ko.observableArray([]).extend({ rateLimit: { timeout: 500, method: "notifyWhenChangesStop" } });
 
     self.init = function() {
         getTopics();
@@ -18,17 +22,18 @@ function ApplicationModel(map, cfg) {
             getSessions(newvalue);
         });
         self.sessionIds.subscribe(function(newvalue) {
-            //drawMarkers(newvalue);
-            drawTracks(newvalue);
-            drawChart($('#chart1')[0], newvalue)
+            updateTrackData(newvalue);
+        });
+        //kick off dom updates
+        self.trackData.subscribe(function(value) {
+            drawTracks(value);
+            //drawMarkers(value);
+            drawChart($('#chart1')[0], value);
         });
     }
 
-
-
     self.refresh = function() {
-        deleteMarkers();
-        drawMarkers(4);
+        updateTrackData(self.currentTrackId);
     }
 
     function getSessions(topicId) {
@@ -69,41 +74,39 @@ function ApplicationModel(map, cfg) {
             });
     }
 
-    //xhr to get paths for trackline and then draw
-    function drawTracks(trackId) {
-        removeTrackLine(self.trackLine);
-        var path = [];
+    function updateTrackData(trackId) {
         $.ajax({
             url: '/api/tracks/' + trackId,
             dataType: 'json'
         })
             .done(function(data) {
+                self.currentTrackId = trackId;
+                self.trackData.removeAll();
                 $.each(data, function(i, item) {
-                    path.push(new google.maps.LatLng(item.lat,item.lon));
+                    self.trackData.push(item);
                 });
-                drawTrackLine(path);
             })
             .fail(function() {
                 alert("failed.")
             });
     }
 
-    //draw all of the markers on the map
-    function drawMarkers(trackId) {
+    //xhr to get paths for trackline and then draw
+    function drawTracks(tracks) {
+        var path = [];
+        removeTrackLine(self.trackLine);
+        $.each(tracks, function(i, item) {
+            path.push(new google.maps.LatLng(item.lat,item.lon));
+        });
+        drawTrackLine(path);
+    }
+
+    function drawMarkers(tracks) {
         deleteMarkers();
-        $.ajax({
-            url: '/api/tracks/' + trackId,
-            dataType: 'json'
-        })
-            .done(function(data) {
-                $.each(data, function(i, item) {
-                    addMarker(item);
-                });
-                drawTrackLine(path)
-            })
-            .fail(function() {
-                alert("failed.")
-            });
+        $.each(tracks, function(i, item) {
+            addMarker(item);
+        });
+        showMarkers();
     }
 
     //draw trackline on map
@@ -170,50 +173,24 @@ function ApplicationModel(map, cfg) {
      * @param trackId
      */
 
-    function drawChart(el, trackId) {
-        // Create and populate the data table.
-        //var data = google.visualization.arrayToDataTable([
-        //    [new Date(2014, 0), 'Data 1', 'Data 2'],
-        //    [new Date(2014, 1),   1,       1] ,
-        //    [new Date(2014, 2),   2,       0.5],
-        //    [new Date(2014, 3),   4,       1],
-        //    [new Date(2014, 4),   8,       0.5],
-        //    [new Date(2014, 5),   7,       1],
-        //    [new Date(2014, 6),   7,       0.5],
-        //    [new Date(2014, 7),   8,       1],
-        //    [new Date(2014, 8),   4,       0.5],
-        //    [new Date(2014, 9),   2,       1],
-        //    [new Date(2014, 10),   3.5,     0.5],
-        //    [new Date(2014, 11),   3,       1],
-        //    [new Date(2014, 12),   3.5,     0.5]
-        //]);
-
+    function drawChart(el, trackData) {
         var dataTable = new google.visualization.DataTable();
-        dataTable.addColumn('number', 'Date');
-        dataTable.addColumn('number','Speed');
-        dataTable.addColumn('number','Altitude');
+        dataTable.addColumn('date', 'Date');
+        dataTable.addColumn('number', 'Speed');
+        dataTable.addColumn('number', 'Altitude');
+        $.each(trackData, function (i, item) {
+            dataTable.addRow([new Date(item.tst), item.vel, item.alt])
+        });
+        new google.visualization.LineChart(el).
+            draw(dataTable, {
+                vAxes: [
+                    {title: 'Speed km/h', titleTextStyle: {color: 'black'}, maxValue: 10}, // Left axis
+                    {title: 'Alititude m', titleTextStyle: {color: 'black'}, maxValue: 20} // Right axis
+                ], series: [
+                    {targetAxisIndex: 0},
+                    {targetAxisIndex: 1}
 
-        $.ajax({
-            url: '/api/tracks/chart/' + trackId,
-            dataType: 'json'
-        })
-            .done(function(data) {
-                dataTable.addRows(data);
-
-
-                // Create and draw the visualization.
-                new google.visualization.LineChart(el).
-                    draw(dataTable, {vAxes:[
-                        {title: 'Speed km/h', titleTextStyle: {color: 'black'}, maxValue: 10}, // Left axis
-                        {title: 'Alititude m', titleTextStyle: {color: 'black'}, maxValue: 20} // Right axis
-                    ],series:[
-                        {targetAxisIndex:0},
-                        {targetAxisIndex:1}
-
-                    ]} );
-            })
-            .fail(function() {
-                alert("failed.")
+                ]
             });
     }
 }
