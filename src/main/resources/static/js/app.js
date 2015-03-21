@@ -4,6 +4,7 @@ function ApplicationModel(map, cfg) {
     self.map = map;
     self.username = "username here";
     self.markers = [];
+    self.trackLine = undefined;
 
     self.topicItems = ko.observableArray([]);
     self.topicIds = ko.observable(-1);
@@ -17,7 +18,9 @@ function ApplicationModel(map, cfg) {
             getSessions(newvalue);
         });
         self.sessionIds.subscribe(function(newvalue) {
-            drawMarkers(newvalue);
+            //drawMarkers(newvalue);
+            drawTracks(newvalue);
+            drawChart($('#chart1')[0], newvalue)
         });
     }
 
@@ -66,6 +69,25 @@ function ApplicationModel(map, cfg) {
             });
     }
 
+    //xhr to get paths for trackline and then draw
+    function drawTracks(trackId) {
+        removeTrackLine(self.trackLine);
+        var path = [];
+        $.ajax({
+            url: '/api/tracks/' + trackId,
+            dataType: 'json'
+        })
+            .done(function(data) {
+                $.each(data, function(i, item) {
+                    path.push(new google.maps.LatLng(item.lat,item.lon));
+                });
+                drawTrackLine(path);
+            })
+            .fail(function() {
+                alert("failed.")
+            });
+    }
+
     //draw all of the markers on the map
     function drawMarkers(trackId) {
         deleteMarkers();
@@ -77,11 +99,29 @@ function ApplicationModel(map, cfg) {
                 $.each(data, function(i, item) {
                     addMarker(item);
                 });
-                showMarkers();
+                drawTrackLine(path)
             })
             .fail(function() {
                 alert("failed.")
             });
+    }
+
+    //draw trackline on map
+    function drawTrackLine(path) {
+        self.trackLine  = new google.maps.Polyline({
+            path: path,
+            strokeColor: 'green',
+            strokeWeight: 5,
+            strokeOpacity:.65
+        });
+        self.trackLine.setMap(self.map);
+    }
+
+    //remove track line from map
+    function removeTrackLine(path) {
+        if (self.trackLine) {
+            self.trackLine.setMap(null);
+        }
     }
 
     //add a marker from the raw data
@@ -94,9 +134,11 @@ function ApplicationModel(map, cfg) {
             //zIndex: zindex,
             labelAnchor: new google.maps.Point(20, 0),
             //labelClass: "labels", // the CSS class for the label
-            labelInBackground: false
+            labelInBackground: false,
+            _id: data.id
         });
         markers.push(marker);
+
     }
 
     // Sets the map on all markers in the array.
@@ -120,5 +162,58 @@ function ApplicationModel(map, cfg) {
     function deleteMarkers() {
         clearMarkers();
         markers = [];
+    }
+
+    /**
+     * Draw a chart plotting speed, time, altitude
+     * @param el
+     * @param trackId
+     */
+
+    function drawChart(el, trackId) {
+        // Create and populate the data table.
+        //var data = google.visualization.arrayToDataTable([
+        //    [new Date(2014, 0), 'Data 1', 'Data 2'],
+        //    [new Date(2014, 1),   1,       1] ,
+        //    [new Date(2014, 2),   2,       0.5],
+        //    [new Date(2014, 3),   4,       1],
+        //    [new Date(2014, 4),   8,       0.5],
+        //    [new Date(2014, 5),   7,       1],
+        //    [new Date(2014, 6),   7,       0.5],
+        //    [new Date(2014, 7),   8,       1],
+        //    [new Date(2014, 8),   4,       0.5],
+        //    [new Date(2014, 9),   2,       1],
+        //    [new Date(2014, 10),   3.5,     0.5],
+        //    [new Date(2014, 11),   3,       1],
+        //    [new Date(2014, 12),   3.5,     0.5]
+        //]);
+
+        var dataTable = new google.visualization.DataTable();
+        dataTable.addColumn('number', 'Date');
+        dataTable.addColumn('number','Speed');
+        dataTable.addColumn('number','Altitude');
+
+        $.ajax({
+            url: '/api/tracks/chart/' + trackId,
+            dataType: 'json'
+        })
+            .done(function(data) {
+                dataTable.addRows(data);
+
+
+                // Create and draw the visualization.
+                new google.visualization.LineChart(el).
+                    draw(dataTable, {vAxes:[
+                        {title: 'Speed km/h', titleTextStyle: {color: 'black'}, maxValue: 10}, // Left axis
+                        {title: 'Alititude m', titleTextStyle: {color: 'black'}, maxValue: 20} // Right axis
+                    ],series:[
+                        {targetAxisIndex:0},
+                        {targetAxisIndex:1}
+
+                    ]} );
+            })
+            .fail(function() {
+                alert("failed.")
+            });
     }
 }

@@ -18,7 +18,7 @@ public interface TrackRepository extends GraphRepository<Track>,SpatialRepositor
     @Query("match (t:Topic)<--(s:Session)<--(tr:Track) where id(t)={0} return tr")
     public Result<Track> findAllForTopic(Long topicId);
 
-    @Query("match (s:Session)<--(tr:Track) where id(s)={0} return tr")
+    @Query("match (s:Session)<--(tr:Track) where id(s)={0} return tr order by tr.tst")
     public Result<Track> findAllForSession(Long sessionId);
 
     @Query("start n=node:" + Track.wktIndexName + "({0}) match (s:Session)<--(n) where id(s)={1} return s")
