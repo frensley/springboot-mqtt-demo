@@ -39,7 +39,7 @@ function ApplicationModel(map, cfg) {
             google.visualization.events.addListener(self.speedChart.getChart(), 'onmouseover', function(e) {
                 var dt = self.speedChart.getDataTable(),
                 row = e.row;
-                if (row) {
+                if (typeof(row) !== undefined) {
                     console.log("mouseover ", row, dt.getRowProperties(e.row));
                     addMarker({
                         lat: dt.getValue(e.row, 3),
