@@ -18,15 +18,42 @@ function ApplicationModel(map, cfg) {
 
     self.init = function() {
         //initialize chart
-        self.speedChart = new google.visualization.LineChart($('#speedChart')[0]);
-        google.visualization.events.addListener(self.speedChart, 'onmouseover', function(e) {
-            console.log("mouseover ",e)
+        self.speedChart = new google.visualization.ChartWrapper({
+            chartType: 'LineChart',
+            containerId: 'speedChart',
+            options: {
+                vAxes: [
+                    {title: 'Speed km/h', titleTextStyle: {color: 'black'}, maxValue: 10}, // Left axis
+                    {title: 'Alititude m', titleTextStyle: {color: 'black'}, maxValue: 20} // Right axis
+                ],
+                series: [
+                    {targetAxisIndex: 0},
+                    {targetAxisIndex: 1}
+                ]
+            }
         });
 
-        google.visualization.events.addListener(self.speedChart, 'onmouseout', function(e) {
-            console.log("mouseout ",e)
-        });
+        //wait for ready event so that we can subscript to mouse over events
+        google.visualization.events.addListener(self.speedChart, 'ready', function() {
 
+            google.visualization.events.addListener(self.speedChart.getChart(), 'onmouseover', function(e) {
+                var dt = self.speedChart.getDataTable(),
+                row = e.row;
+                if (row) {
+                    console.log("mouseover ", row, dt.getRowProperties(e.row));
+                    addMarker({
+                        lat: dt.getValue(e.row, 3),
+                        lon: dt.getValue(e.row, 4)
+                    });
+                    showMarkers();
+                }
+            });
+
+            google.visualization.events.addListener(self.speedChart.getChart(), 'onmouseout', function(e) {
+                console.log("mouseout ",e)
+                deleteMarkers();
+            });
+        });
 
         self.topicIds.subscribe(function(newvalue) {
             getSessions(newvalue);
@@ -146,9 +173,9 @@ function ApplicationModel(map, cfg) {
 
             position: new google.maps.LatLng(data.lat, data.lon),
             //icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-            labelContent: 'Lat: ' + data.lat + ' Lng: ' + data.lon,
+            //labelContent: 'Lat: ' + data.lat + ' Lng: ' + data.lon,
             //zIndex: zindex,
-            labelAnchor: new google.maps.Point(20, 0),
+            //labelAnchor: new google.maps.Point(20, 0),
             //labelClass: "labels", // the CSS class for the label
             labelInBackground: false,
             _id: data.id
@@ -192,23 +219,23 @@ function ApplicationModel(map, cfg) {
         dataTable.addColumn('date', 'Date');
         dataTable.addColumn('number', 'Speed');
         dataTable.addColumn('number', 'Altitude');
+        //add lat/lon for hover over event markers on map
+        dataTable.addColumn('number', 'lat');
+        dataTable.addColumn('number', 'lon');
+
         $.each(trackData, function (i, item) {
-            dataTable.addRow([new Date(item.tst * 1000), item.vel, item.alt])
+            dataTable.addRow([new Date(item.tst * 1000), item.vel, item.alt, item.lat, item.lon])
         });
         //reformat date column
         monthYearFormatter = new google.visualization.DateFormat({
             pattern: "MMM yyyy hh:mm aa"
         });
         monthYearFormatter.format(dataTable, 0);
-        self.speedChart.draw(dataTable, {
-                vAxes: [
-                    {title: 'Speed km/h', titleTextStyle: {color: 'black'}, maxValue: 10}, // Left axis
-                    {title: 'Alititude m', titleTextStyle: {color: 'black'}, maxValue: 20} // Right axis
-                ], series: [
-                    {targetAxisIndex: 0},
-                    {targetAxisIndex: 1}
-
-                ]
-            });
+        self.speedChart.setDataTable(dataTable);
+        self.speedChart.setView({
+            columns: [0,1,2]
+        });
+        self.speedChart.draw();
     }
+
 }
