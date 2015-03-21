@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by sfrensley on 3/14/15.
@@ -38,13 +37,6 @@ public class RestApi {
     @RequestMapping("/tracks/{sessionId}")
     public List<Track> points(@PathVariable("sessionId") Long sessionId) {
         return trackService.findAllForSession(sessionId);
-    }
-
-    @RequestMapping("/tracks/chart/{sessionId}")
-    public List<Object[]> pointsForChart(@PathVariable("sessionId") Long sessionId) {
-        return trackService.findAllForSession(sessionId).stream()
-                .map(s->new Object[]{s.getTst(),s.getVel(),s.getAlt()})
-                .collect(Collectors.toList());
     }
 
     /**
