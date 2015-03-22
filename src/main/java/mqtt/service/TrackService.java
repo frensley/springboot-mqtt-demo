@@ -34,6 +34,15 @@ public class TrackService {
     }
 
     /**
+     * Find @Track by it's id
+     * @param id
+     * @return
+     */
+    public Track findById(Long id) {
+        return repository.findOne(id);
+    }
+
+    /**
      * Return all tracks
      * @return
      */
@@ -121,5 +130,13 @@ public class TrackService {
      */
     public List<Track> findAllForSession(Long sessionId) {
         return repository.findAllForSession(sessionId).as(ArrayList.class);
+    }
+
+    /**
+     * Delete all @Track for specific session
+     * @param sessionId
+     */
+    public void deleteAllForSession(Long sessionId) {
+        repository.delete(findAllForSession(sessionId));
     }
 }

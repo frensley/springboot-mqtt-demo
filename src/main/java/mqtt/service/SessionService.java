@@ -5,6 +5,7 @@ import mqtt.domain.Session;
 import mqtt.domain.Topic;
 import mqtt.repository.SessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,15 +19,18 @@ import java.util.List;
 @Service
 @Transactional
 @Slf4j
+@Repository
 public class SessionService {
 
     private SessionRepository repository;
     private TopicService topicService;
+    private TrackService trackService;
 
     @Autowired
-    public SessionService(SessionRepository sessionRepository, TopicService topicService) {
+    public SessionService(SessionRepository sessionRepository, TopicService topicService, TrackService trackService) {
         this.repository = sessionRepository;
         this.topicService = topicService;
+        this.trackService = trackService;
     }
 
     public Session save(Session session) {
@@ -60,6 +64,11 @@ public class SessionService {
             s = repository.save(s);
         }
         return s;
+    }
+
+    public void deleteSession(Long sessionId) {
+        trackService.deleteAllForSession(sessionId);
+        repository.delete(sessionId);
     }
 
 }
