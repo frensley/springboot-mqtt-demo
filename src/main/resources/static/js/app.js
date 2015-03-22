@@ -5,6 +5,7 @@ function ApplicationModel(map, cfg) {
     self.username = "username here";
     self.markers = [];
     self.trackLine = undefined;
+    self.trackLineMarkers = [];
     self.speedChart;
 
     self.topicItems = ko.observableArray([]);
@@ -141,17 +142,19 @@ function ApplicationModel(map, cfg) {
         var path = [];
         removeTrackLine(self.trackLine);
         $.each(tracks, function(i, item) {
-            path.push(new google.maps.LatLng(item.lat,item.lon));
+            var latLng = new google.maps.LatLng(item.lat,item.lon)
+            self.trackLineMarkers.push(new google.maps.Marker({
+                position: latLng,
+                icon: {
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    rotation: item.cog,
+                    scale: 2,
+                    strokeColor: 'green',
+                }
+            }));
+            path.push(latLng);
         });
         drawTrackLine(path);
-    }
-
-    function drawMarkers(tracks) {
-        deleteMarkers();
-        $.each(tracks, function(i, item) {
-            addMarker(item);
-        });
-        showMarkers();
     }
 
     //draw trackline on map
@@ -159,8 +162,13 @@ function ApplicationModel(map, cfg) {
         self.trackLine  = new google.maps.Polyline({
             path: path,
             strokeColor: 'green',
-            strokeWeight: 5,
+            fillColor: 'green',
+            fillOpacity: .7,
+            strokeWeight: 3,
             strokeOpacity:.65
+        });
+        $.each(self.trackLineMarkers, function(i,item) {
+           item.setMap(self.map);
         });
         self.trackLine.setMap(self.map);
     }
@@ -170,6 +178,18 @@ function ApplicationModel(map, cfg) {
         if (self.trackLine) {
             self.trackLine.setMap(null);
         }
+        $.each(self.trackLineMarkers, function(i,item) {
+           item.setMap(null);
+        });
+        self.trackLineMarkers = [];
+    }
+
+    function drawMarkers(tracks) {
+        deleteMarkers();
+        $.each(tracks, function(i, item) {
+            addMarker(item);
+        });
+        showMarkers();
     }
 
     //add a marker from the raw data
