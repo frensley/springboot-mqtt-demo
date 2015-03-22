@@ -64,14 +64,10 @@
             <div id="map-canvas"></div>
         </div>
         <div class="col-md-3">
-            <select id="topicSelector" data-width="auto"  data-bind="selectPicker: topicIds, optionsText: 'text', optionsValue : 'id', selectPickerOptions: { optionsArray: topicItems }"></select>
-            <div>Selected Value(s)
-                <div data-bind="text: topicIds"></div>
-            </div>
-            <select id="sessionSelector" data-width="auto" data-bind="selectPicker: sessionIds, optionsText: 'text', optionsValue : 'id', selectPickerOptions: { optionsArray: sessionItems }"></select>
-            <div>Selected Value(s)
-                <div data-bind="text: sessionIds"></div>
-            </div>
+            <p>Topic queue (<span data-bind="text: topicIds"></span>) :</p>
+            <select id="topicSelector" data-width="auto"  data-bind="selectPicker: topicIds, optionsText: 'text', optionsValue : 'id', selectPickerOptions: { optionsArray: topicItems }" class="menu-select"></select>
+            <p>Session (<span data-bind="text: sessionIds"></span>) :</p>
+            <select id="sessionSelector" data-width="auto" data-bind="selectPicker: sessionIds, optionsText: 'text', optionsValue : 'id', selectPickerOptions: { optionsArray: sessionItems }" class="menu-select"></select>
             <div id="speedChart" style="width: 100%; height: 250px"></div>
         </div>
     </div>

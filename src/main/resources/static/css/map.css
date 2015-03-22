@@ -38,3 +38,7 @@ body {
     border: 2px solid black;
     white-space: nowrap;
 }
+
+.menu-select {
+    margin-bottom: 15px;
+}
