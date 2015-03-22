@@ -29,7 +29,12 @@ function ApplicationModel(map, cfg) {
                 series: [
                     {targetAxisIndex: 0},
                     {targetAxisIndex: 1}
-                ]
+                ],
+                hAxis: {
+                    viewWindow: {
+                        min: 0
+                    }
+                }
             }
         });
 
@@ -39,11 +44,11 @@ function ApplicationModel(map, cfg) {
             google.visualization.events.addListener(self.speedChart.getChart(), 'onmouseover', function(e) {
                 var dt = self.speedChart.getDataTable(),
                 row = e.row;
-                if (typeof(row) !== undefined) {
+                if (typeof(row) !== undefined && row !== null) {
                     console.log("mouseover ", row, dt.getRowProperties(e.row));
                     addMarker({
-                        lat: dt.getValue(e.row, 3),
-                        lon: dt.getValue(e.row, 4)
+                        lat: dt.getValue(e.row, 5),
+                        lon: dt.getValue(e.row, 6)
                     });
                     showMarkers();
                 }
@@ -215,27 +220,41 @@ function ApplicationModel(map, cfg) {
 
     function drawSpeedChart(trackData) {
         var dataTable = new google.visualization.DataTable(),
-            monthYearFormatter;
-        dataTable.addColumn('date', 'Date');
+            monthYearFormatter,
+            startTime = 0;
+        //TODO: fix this dependency
+        //WARNING: dont forget to change columns indexes in hover over if you much wiht columns
+        //tooltip must follow applicable column
+        dataTable.addColumn('number', 'Date');
         dataTable.addColumn('number', 'Speed');
+        dataTable.addColumn({type: 'string', role: 'tooltip'});
         dataTable.addColumn('number', 'Altitude');
+        dataTable.addColumn({type: 'string', role: 'tooltip'});
         //add lat/lon for hover over event markers on map
         dataTable.addColumn('number', 'lat');
         dataTable.addColumn('number', 'lon');
 
+
         $.each(trackData, function (i, item) {
-            dataTable.addRow([new Date(item.tst * 1000), item.vel, item.alt, item.lat, item.lon])
+            if (i == 0) startTime = item.tst;
+            var minutes = (item.tst - startTime) / 60;
+            dataTable.addRow([ minutes , item.vel, getSpeedChartToolTip(item, {minutes: minutes}), item.alt, getSpeedChartToolTip(item, {minutes: minutes}), item.lat, item.lon])
+
         });
-        //reformat date column
-        monthYearFormatter = new google.visualization.DateFormat({
-            pattern: "MMM yyyy hh:mm aa"
-        });
-        monthYearFormatter.format(dataTable, 0);
+
         self.speedChart.setDataTable(dataTable);
         self.speedChart.setView({
-            columns: [0,1,2]
+            columns: [0,1,2,3,4]
         });
         self.speedChart.draw();
+    }
+
+    //TODO: replace with HTML tooltip
+    function getSpeedChartToolTip(item,extra) {
+        return "Date: " + new Date(item.tst*1000) + "\n" +
+                "Time: " + Math.floor(extra.minutes) + "\n" +
+                "Velocity: " + item.vel + "km/h (" + Math.floor(item.vel * .621371) + " mph)\n" +
+                "Altitude: " + item.alt + "m (" + Math.floor(item.alt * 3.28084) +  "ft)";
     }
 
 }
