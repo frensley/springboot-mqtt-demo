@@ -49,7 +49,7 @@ public class TestSessionService {
         assertNotNull(s1.getId());
         Session s2 = sessionService.findOrCreateSession(t,5000L);
         assertNotNull(s2);
-        assertTrue(s1.getId() == s2.getId());
+        assertTrue(s1.getId().equals(s2.getId()));
     }
 
     /**
@@ -65,7 +65,9 @@ public class TestSessionService {
         assertNotNull(s1.getId());
         Session s2 = sessionService.findOrCreateSession(t, 1L);
         assertNotNull(s2);
-        assertTrue(s1.getId() != s2.getId());
+        assertTrue(!s1.getId().equals(s2.getId()));
     }
+
+
 
 }

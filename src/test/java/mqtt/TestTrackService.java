@@ -58,7 +58,7 @@ public class TestTrackService {
         //
         Track track1 = trackService.findByTopicAndTimestamp(t.getName(), track.getTst().longValue());
         assertNotNull(track1);
-        assertTrue(track1.getId() == track.getId());
+        assertTrue(track1.getId().equals(track.getId()));
     }
 
     /**

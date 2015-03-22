@@ -36,10 +36,10 @@ public class TestTopicService {
         assertNotNull(t1.getId());
 
         Topic t2 = service.findOrCreateTopic("foo");
-        assertTrue(t1.getId() == t2.getId());
+        assertTrue(t1.getId().equals(t2.getId()));
 
         Topic t3 = service.findOrCreateTopic("bar");
-        assertTrue(t3.getId() != t2.getId());
+        assertTrue(!t3.getId().equals(t2.getId()));
     }
 
 }
