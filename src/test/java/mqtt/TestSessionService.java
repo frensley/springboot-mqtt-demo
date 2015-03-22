@@ -110,7 +110,8 @@ public class TestSessionService {
         sessionService.deleteSession(s1.getId());
         //deletes
         //Something is funky with SDN deletes. The actual node seems to still be around,
-        //but the SDN _Type index has been removed; Thus it errors.
+        //but the SDN _Type index has been removed; Thus it errors with:
+        // "java.lang.IllegalStateException: No primary SDN label exists .. (i.e one starting with _) "
         try {
             trackService.findById(t1.getId());
             assertTrue("Exception expected.",true);
