@@ -167,7 +167,7 @@ function ApplicationModel(map, cfg) {
                     path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
                     rotation: item.cog,
                     scale: 2,
-                    strokeColor: 'green',
+                    strokeColor: 'green'
                 }
             }));
             path.push(latLng);
