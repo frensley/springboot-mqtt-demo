@@ -50,6 +50,15 @@ public class RestApi {
     }
 
     /**
+     * delete a particular
+     * @param sessionId
+     */
+    @RequestMapping("/sessions/delete/{sessionId}")
+    public void deleteSession(@PathVariable("sessionId") Long sessionId) {
+        sessionService.deleteSession(sessionId);
+    }
+
+    /**
      * Returns List of @Topic for entire system
      * @return
      */
