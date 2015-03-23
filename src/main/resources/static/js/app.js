@@ -6,8 +6,10 @@ function ApplicationModel(map, cfg) {
     self.markers = [];
     self.trackLine = undefined;
     self.trackLineMarkers = [];
+    //holds reference to speed/altitude chart
     self.speedChart;
-
+    //holds reference to current bounds of markers
+    self.bounds;
     self.topicItems = ko.observableArray([]);
     self.topicIds = ko.observable(-1);
     self.sessionItems = ko.observableArray([]);
@@ -78,7 +80,7 @@ function ApplicationModel(map, cfg) {
 
         //xhr list topics
         getTopics();
-    }
+    } // end init
 
     self.refresh = function() {
         updateTrackData(self.currentTrackId);
@@ -157,9 +159,11 @@ function ApplicationModel(map, cfg) {
             });
     }
 
-    //xhr to get paths for trackline and then draw
+    //xhr to get paths for trackline, draw direction arrows, fit to bounds
+
     function drawTracks(tracks) {
         var path = [];
+        bounds = new google.maps.LatLngBounds();
         removeTrackLine(self.trackLine);
         $.each(tracks, function(i, item) {
             var latLng = new google.maps.LatLng(item.lat,item.lon)
@@ -173,8 +177,11 @@ function ApplicationModel(map, cfg) {
                 }
             }));
             path.push(latLng);
+            bounds.extend(latLng);
         });
         drawTrackLine(path);
+        //ensure map contains all markers
+        self.map.fitBounds(bounds);
     }
 
     //draw trackline on map
