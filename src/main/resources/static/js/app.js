@@ -43,20 +43,22 @@ function ApplicationModel(map, cfg) {
         google.visualization.events.addListener(self.speedChart, 'ready', function() {
 
             google.visualization.events.addListener(self.speedChart.getChart(), 'onmouseover', function(e) {
-                var dt = self.speedChart.getDataTable(),
+                var dt = self.speedChart.getDataTable();
+
                 row = e.row;
                 if (typeof(row) !== undefined && row !== null) {
-                    console.log("mouseover ", row, dt.getRowProperties(e.row));
+                    var lat = dt.getValue(e.row, 5),
+                        lon = dt.getValue(e.row, 6);
                     addMarker({
-                        lat: dt.getValue(e.row, 5),
-                        lon: dt.getValue(e.row, 6)
+                        lat: lat,
+                        lon: lon
                     });
                     showMarkers();
+                    self.map.panTo(new google.maps.LatLng(lat, lon));
                 }
             });
 
             google.visualization.events.addListener(self.speedChart.getChart(), 'onmouseout', function(e) {
-                console.log("mouseout ",e)
                 deleteMarkers();
             });
         });
@@ -224,7 +226,6 @@ function ApplicationModel(map, cfg) {
             _id: data.id
         });
         markers.push(marker);
-
     }
 
     // Sets the map on all markers in the array.
