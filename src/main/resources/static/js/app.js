@@ -82,6 +82,24 @@ function ApplicationModel(map, cfg) {
         updateTrackData(self.currentTrackId);
     }
 
+    self.deleteSelectedSession =  function() {
+        console.log("I would delete session " + self.sessionIds());
+        //deleteSession(self.sessionIds());
+    }
+
+    function deleteSession(sessionId) {
+        $.ajax({
+            url: '/api/sessions/delete/'+sessionId,
+            dataType: 'json'
+        })
+            .done(function() {
+                getTopics();
+            })
+            .fail(function() {
+                alert("failed.")
+            });
+    }
+
     function getSessions(topicId) {
         self.sessionItems.removeAll();
         $.ajax({

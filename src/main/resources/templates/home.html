@@ -67,9 +67,9 @@
         </div>
         <div class="col-md-3">
             <p>Topic queue (<span data-bind="text: topicIds"></span>) :</p>
-            <select id="topicSelector" data-bind="selectPicker: topicIds, optionsText: 'text', optionsValue : 'id', selectPickerOptions: { optionsArray: topicItems }" class="menu-select span12"></select><button class="btn"><i class="glyphicon glyphicon-trash"></i></button>
+            <select id="topicSelector" data-bind="selectPicker: topicIds, optionsText: 'text', optionsValue : 'id', selectPickerOptions: { optionsArray: topicItems }" class="menu-select span12"></select><button class="btn hidden"><i class="glyphicon glyphicon-trash"></i></button>
             <p>Session (<span data-bind="text: sessionIds"></span>) :</p>
-            <select id="sessionSelector" data-bind="selectPicker: sessionIds, optionsText: 'text', optionsValue : 'id', selectPickerOptions: { optionsArray: sessionItems }" class="menu-select"></select><button class="btn"><i class="glyphicon glyphicon-trash"></i></button>
+            <select id="sessionSelector" data-bind="selectPicker: sessionIds, optionsText: 'text', optionsValue : 'id', selectPickerOptions: { optionsArray: sessionItems }" class="menu-select"></select><button data-bind="click: deleteSelectedSession" class="btn"><i class="glyphicon glyphicon-trash"></i></button>
             <div id="speedChart" class="menu-chart"></div>
         </div>
     </div>
