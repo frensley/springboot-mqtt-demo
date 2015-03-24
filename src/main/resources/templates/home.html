@@ -41,7 +41,7 @@
             map = new google.maps.Map(document.getElementById('map-canvas'),
                     mapOptions);
             //initialize ko
-            var appModel = new ApplicationModel(map, {});
+            appModel = new ApplicationModel(map, {});
             ko.applyBindings(appModel);
             appModel.init();
         }
