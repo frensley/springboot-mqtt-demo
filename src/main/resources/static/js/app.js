@@ -1,11 +1,15 @@
 function ApplicationModel(map, cfg) {
     var self = this;
 
+
     self.map = map;
     self.username = "username here";
-    self.markers = [];
+    //poly line reference
     self.trackLine = undefined;
+    //marker array on poly line
     self.trackLineMarkers = [];
+    //POI marker
+    self.trackLineHIghlightMarker = undefined;
     //holds reference to speed/altitude chart
     self.speedChart;
     //holds reference to current bounds of markers
@@ -37,32 +41,26 @@ function ApplicationModel(map, cfg) {
                     viewWindow: {
                         min: 0
                     }
-                }
+                },
+
+                tooltip: { trigger: 'selection' }
             }
         });
 
         //wait for ready event so that we can subscript to mouse over events
         google.visualization.events.addListener(self.speedChart, 'ready', function() {
 
-            google.visualization.events.addListener(self.speedChart.getChart(), 'onmouseover', function(e) {
-                var dt = self.speedChart.getDataTable();
-
-                row = e.row;
-                if (typeof(row) !== undefined && row !== null) {
-                    var lat = dt.getValue(e.row, 5),
-                        lon = dt.getValue(e.row, 6);
-                    addMarker({
-                        lat: lat,
-                        lon: lon
-                    });
-                    showMarkers();
-                    self.map.panTo(new google.maps.LatLng(lat, lon));
+            google.visualization.events.addListener(self.speedChart.getChart(), 'select', function() {
+                var dt = self.speedChart.getDataTable(),
+                    selection = self.speedChart.getChart().getSelection(),
+                    row = selection.length ? selection[0].row : undefined;
+                highlightMarker(self.trackLineHIghlightMarker,2);
+                if (typeof(row) !== "undefined") {
+                    self.map.panTo(self.trackLineMarkers[row].getPosition());
+                    self.trackLineHIghlightMarker = highlightMarker(self.trackLineMarkers[row],4)
                 }
             });
 
-            google.visualization.events.addListener(self.speedChart.getChart(), 'onmouseout', function(e) {
-                deleteMarkers();
-            });
         });
 
         self.topicIds.subscribe(function(newvalue) {
@@ -74,7 +72,6 @@ function ApplicationModel(map, cfg) {
         //kick off dom updates
         self.trackData.subscribe(function(value) {
             drawTracks(value);
-            //drawMarkers(value);
             drawSpeedChart(value);
         });
 
@@ -166,22 +163,50 @@ function ApplicationModel(map, cfg) {
         bounds = new google.maps.LatLngBounds();
         removeTrackLine(self.trackLine);
         $.each(tracks, function(i, item) {
-            var latLng = new google.maps.LatLng(item.lat,item.lon)
-            self.trackLineMarkers.push(new google.maps.Marker({
+            var latLng = new google.maps.LatLng(item.lat,item.lon),
+            marker = new MarkerWithLabel({
                 position: latLng,
                 icon: {
                     path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
                     rotation: item.cog,
                     scale: 2,
-                    strokeColor: 'green'
-                }
-            }));
+                    strokeColor: 'green',
+                    fillColor: 'green',
+                    fillOpacity: 1
+                },
+                _index: i
+            });
+            google.maps.event.addListener(marker, 'mouseover', function() {
+                var icon;
+                //index is row number of dataTable for chart
+                self.speedChart.getChart().setSelection([{row: this._index, column:1}]);
+                //bounce the icon on mouse over
+                highlightMarker(self.trackLineHIghlightMarker, 2);
+                this.trackLineHIghlightMarker = highlightMarker(this, 4);
+                //this.setAnimation(google.maps.Animation.BOUNCE);
+            });
+            google.maps.event.addListener(marker, 'mouseout', function() {
+                var icon;
+                //stop animation
+                //this.setAnimation(null);
+                highlightMarker(this,2, 'green');
+            });
+            self.trackLineMarkers.push(marker);
             path.push(latLng);
             bounds.extend(latLng);
         });
         drawTrackLine(path);
         //ensure map contains all markers
         self.map.fitBounds(bounds);
+    }
+
+    function highlightMarker(marker, scale) {
+        if (marker) {
+            var icon = marker.getIcon();
+            icon.scale = scale;
+            marker.setIcon(icon);
+        }
+        return marker;
     }
 
     //draw trackline on map
@@ -209,53 +234,6 @@ function ApplicationModel(map, cfg) {
            item.setMap(null);
         });
         self.trackLineMarkers = [];
-    }
-
-    function drawMarkers(tracks) {
-        deleteMarkers();
-        $.each(tracks, function(i, item) {
-            addMarker(item);
-        });
-        showMarkers();
-    }
-
-    //add a marker from the raw data
-    function addMarker(data) {
-        var marker = new MarkerWithLabel({
-
-            position: new google.maps.LatLng(data.lat, data.lon),
-            //icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-            //labelContent: 'Lat: ' + data.lat + ' Lng: ' + data.lon,
-            //zIndex: zindex,
-            //labelAnchor: new google.maps.Point(20, 0),
-            //labelClass: "labels", // the CSS class for the label
-            labelInBackground: false,
-            _id: data.id
-        });
-        markers.push(marker);
-    }
-
-    // Sets the map on all markers in the array.
-    function setAllMap(map) {
-        for (var i = 0; i < markers.length; i++) {
-            markers[i].setMap(map);
-        }
-    }
-
-    // Removes the markers from the map, but keeps them in the array.
-    function clearMarkers() {
-        setAllMap(null);
-    }
-
-    // Shows any markers currently in the array.
-    function showMarkers() {
-        setAllMap(map);
-    }
-
-    // Deletes all markers in the array by removing references to them.
-    function deleteMarkers() {
-        clearMarkers();
-        markers = [];
     }
 
     /**
