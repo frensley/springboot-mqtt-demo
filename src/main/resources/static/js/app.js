@@ -180,6 +180,7 @@ function ApplicationModel(map, cfg) {
                 highlightMarker(this);
             });
             google.maps.event.addListener(marker, 'mouseout', function() {
+                speedChart.getChart().setSelection(null);
                 highlightMarker(null);
             });
             //keep reference to each marker
