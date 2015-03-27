@@ -1,19 +1,19 @@
 function ApplicationModel(map, cfg) {
-    var self = this;
+    var self = this,
+        //poly line reference
+        trackLine = undefined,
+        //marker array on poly line
+        trackLineMarkers = [],
+        //marker that is highlighted on map track
+        trackLineHighlightMarker = null,
+        //holds reference to current bounds of markers for zoom to extents
+        bounds,
+        //holds reference to speed/altitude chart
+        speedChart;
 
 
-    self.map = map;
-    self.username = "username here";
-    //poly line reference
-    self.trackLine = undefined;
-    //marker array on poly line
-    self.trackLineMarkers = [];
-    //POI marker
-    self.trackLineHIghlightMarker = undefined;
-    //holds reference to speed/altitude chart
-    self.speedChart;
-    //holds reference to current bounds of markers
-    self.bounds;
+    //public variables
+    self.username = ""; //not used yet
     self.topicItems = ko.observableArray([]);
     self.topicIds = ko.observable(-1);
     self.sessionItems = ko.observableArray([]);
@@ -25,7 +25,7 @@ function ApplicationModel(map, cfg) {
 
     self.init = function() {
         //initialize chart
-        self.speedChart = new google.visualization.ChartWrapper({
+        speedChart = new google.visualization.ChartWrapper({
             chartType: 'LineChart',
             containerId: 'speedChart',
             options: {
@@ -42,25 +42,24 @@ function ApplicationModel(map, cfg) {
                         min: 0
                     }
                 },
-
                 tooltip: { trigger: 'selection' }
             }
         });
 
         //wait for ready event so that we can subscript to mouse over events
-        google.visualization.events.addListener(self.speedChart, 'ready', function() {
+        google.visualization.events.addListener(speedChart, 'ready', function() {
 
-            google.visualization.events.addListener(self.speedChart.getChart(), 'select', function() {
-                var dt = self.speedChart.getDataTable(),
-                    selection = self.speedChart.getChart().getSelection(),
+            google.visualization.events.addListener(speedChart.getChart(), 'select', function() {
+                var chart = speedChart.getChart(),
+                    selection = chart.getSelection(),
                     row = selection.length ? selection[0].row : undefined;
-                highlightMarker(self.trackLineHIghlightMarker,2);
                 if (typeof(row) !== "undefined") {
-                    self.map.panTo(self.trackLineMarkers[row].getPosition());
-                    self.trackLineHIghlightMarker = highlightMarker(self.trackLineMarkers[row],4)
+                    map.panTo(trackLineMarkers[row].getPosition());
+                    highlightMarker(trackLineMarkers[row])
+                } else {
+                    highlightMarker(null);
                 }
             });
-
         });
 
         self.topicIds.subscribe(function(newvalue) {
@@ -77,16 +76,16 @@ function ApplicationModel(map, cfg) {
 
         //xhr list topics
         getTopics();
-    } // end init
+    }; // end init
 
     self.refresh = function() {
         updateTrackData(self.currentTrackId);
-    }
+    };
 
     self.deleteSelectedSession =  function() {
         console.log("I would delete session " + self.sessionIds());
         //deleteSession(self.sessionIds());
-    }
+    };
 
     function deleteSession(sessionId) {
         $.ajax({
@@ -157,11 +156,10 @@ function ApplicationModel(map, cfg) {
     }
 
     //xhr to get paths for trackline, draw direction arrows, fit to bounds
-
     function drawTracks(tracks) {
         var path = [];
         bounds = new google.maps.LatLngBounds();
-        removeTrackLine(self.trackLine);
+        removeTrackLine(trackLine);
         $.each(tracks, function(i, item) {
             var latLng = new google.maps.LatLng(item.lat,item.lon),
             marker = new MarkerWithLabel({
@@ -177,41 +175,44 @@ function ApplicationModel(map, cfg) {
                 _index: i
             });
             google.maps.event.addListener(marker, 'mouseover', function() {
-                var icon;
                 //index is row number of dataTable for chart
-                self.speedChart.getChart().setSelection([{row: this._index, column:1}]);
-                //bounce the icon on mouse over
-                highlightMarker(self.trackLineHIghlightMarker, 2);
-                this.trackLineHIghlightMarker = highlightMarker(this, 4);
-                //this.setAnimation(google.maps.Animation.BOUNCE);
+                speedChart.getChart().setSelection([{row: this._index, column:1}]);
+                highlightMarker(this);
             });
             google.maps.event.addListener(marker, 'mouseout', function() {
-                var icon;
-                //stop animation
-                //this.setAnimation(null);
-                highlightMarker(this,2, 'green');
+                highlightMarker(null);
             });
-            self.trackLineMarkers.push(marker);
+            //keep reference to each marker
+            trackLineMarkers.push(marker);
+            //keep array of latlngs for draw line
             path.push(latLng);
+            //push bounds for each latlng to ensure map view port contains marker
             bounds.extend(latLng);
         });
+        //draw line
         drawTrackLine(path);
         //ensure map contains all markers
-        self.map.fitBounds(bounds);
+        map.fitBounds(bounds);
     }
 
-    function highlightMarker(marker, scale) {
-        if (marker) {
-            var icon = marker.getIcon();
-            icon.scale = scale;
-            marker.setIcon(icon);
+    //draw highlight around marker
+    function highlightMarker(marker) {
+        function doHighLight(m) {
+            if (m) {
+                var icon = m.getIcon();
+                icon.scale = icon.scale == 2 ? 4 : 2;
+                icon.strokeColor = icon.strokeColor == 'green' ? 'yellow' : 'green'
+                m.setIcon(icon);
+            }
+            return m;
         }
-        return marker;
+        doHighLight(trackLineHighlightMarker);
+        trackLineHighlightMarker = doHighLight(marker);
     }
 
     //draw trackline on map
     function drawTrackLine(path) {
-        self.trackLine  = new google.maps.Polyline({
+        trackLine  = new google.maps.Polyline({
             path: path,
             strokeColor: 'green',
             fillColor: 'green',
@@ -219,21 +220,21 @@ function ApplicationModel(map, cfg) {
             strokeWeight: 3,
             strokeOpacity:.65
         });
-        $.each(self.trackLineMarkers, function(i,item) {
-           item.setMap(self.map);
+        $.each(trackLineMarkers, function(i,item) {
+           item.setMap(map);
         });
-        self.trackLine.setMap(self.map);
+        trackLine.setMap(map);
     }
 
     //remove track line from map
     function removeTrackLine(path) {
-        if (self.trackLine) {
-            self.trackLine.setMap(null);
+        if (trackLine) {
+            trackLine.setMap(null);
         }
-        $.each(self.trackLineMarkers, function(i,item) {
+        $.each(trackLineMarkers, function(i,item) {
            item.setMap(null);
         });
-        self.trackLineMarkers = [];
+        trackLineMarkers = [];
     }
 
     /**
@@ -266,16 +267,16 @@ function ApplicationModel(map, cfg) {
 
         });
 
-        self.speedChart.setDataTable(dataTable);
-        self.speedChart.setView({
+        speedChart.setDataTable(dataTable);
+        speedChart.setView({
             columns: [0,1,2,3,4]
         });
-        self.speedChart.draw();
+        speedChart.draw();
     }
 
     //TODO: replace with HTML tooltip
     function getSpeedChartToolTip(item,extra) {
-        return "Date: " + new Date(item.tst*1000) + "\n" +
+        return  "Date: " + new Date(item.tst*1000) + "\n" +
                 "Time: " + Math.floor(extra.minutes) + "\n" +
                 "Velocity: " + item.vel + "km/h (" + Math.floor(item.vel * .621371) + " mph)\n" +
                 "Altitude: " + item.alt + "m (" + Math.floor(item.alt * 3.28084) +  "ft)";
