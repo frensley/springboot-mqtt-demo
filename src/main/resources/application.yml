@@ -3,8 +3,7 @@ mqtt:
     port: 8883
     #websocket_port: 8080
     host: 0.0.0.0
-    password_file: password_file.conf
-    name: main-server
+    jmx: false
   consumer:
     host: localhost
     port: 8883
