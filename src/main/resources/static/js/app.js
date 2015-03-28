@@ -202,7 +202,7 @@ function ApplicationModel(map, cfg) {
             if (m) {
                 var icon = m.getIcon();
                 icon.scale = icon.scale == 2 ? 4 : 2;
-                icon.strokeColor = icon.strokeColor == 'green' ? 'yellow' : 'green'
+                icon.strokeColor = icon.strokeColor == 'green' ? 'red' : 'green'
                 m.setIcon(icon);
             }
             return m;
