@@ -69,11 +69,9 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter")
     compile("org.projectlombok:lombok:1.16.2")
 
-    //mqtt
-    compile("org.dna.mqtt:moquette-broker:0.6") {
-        exclude(group: 'org.slf4j')
-        exclude(group: 'org.apache.felix')
-    }
+    //activemq
+    compile('org.apache.activemq:activemq-mqtt:5.11.1')
+
     compile("org.eclipse.paho:mqtt-client:0.4.0")
 
     //test
