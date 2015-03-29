@@ -12,4 +12,5 @@
     </root>
     <logger name="org.springframework.data.neo4j.support.query" level="DEBUG"/>
     <logger name="org.springframework.data.neo4j" level="DEBUG"/>
+    <!--<logger name="org.apache.activemq" level="DEBUG"/>-->
 </configuration>

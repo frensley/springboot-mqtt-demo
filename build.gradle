@@ -64,15 +64,15 @@ dependencies {
 
 
     //platform
+    compile("org.springframework:spring-jms");
     compile("org.springframework.boot:spring-boot-starter-thymeleaf")
     compile("net.sourceforge.nekohtml:nekohtml:1.9.21")
     compile("org.springframework.boot:spring-boot-starter")
     compile("org.projectlombok:lombok:1.16.2")
 
     //activemq
-    compile('org.apache.activemq:activemq-mqtt:5.11.1')
-
-    compile("org.eclipse.paho:mqtt-client:0.4.0")
+    compile("org.apache.activemq:activemq-mqtt:5.11.1")
+    compile("org.apache.activemq:activemq-pool:5.11.1")
 
     //test
     testCompile("org.springframework.boot:spring-boot-starter-test") 

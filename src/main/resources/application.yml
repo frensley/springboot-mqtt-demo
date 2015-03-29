@@ -1,14 +1,12 @@
 mqtt:
-  server:
+  broker:
     port: 8883
     #websocket_port: 8080
     host: 0.0.0.0
     jmx: false
   consumer:
-    host: localhost
-    port: 8883
-    subscriptions: owntracks/user/+
-    name: consumer
+    host: vm://localhost
+    subscriptions: owntracks.user.*
     timeout: 5000
     session-window-seconds: 300
 
