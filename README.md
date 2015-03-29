@@ -33,4 +33,4 @@ Location publish can be done using the "Publish Now" or "Move Mode" selections.
 - More unit testing
 - Documentation
 - Better UI experience
-- Better broker/messaging solution ([ActiveMQ](http://activemq.apache.org/mqtt.html))
+- ~~Better broker/messaging solution ([ActiveMQ](http://activemq.apache.org/mqtt.html))~~
